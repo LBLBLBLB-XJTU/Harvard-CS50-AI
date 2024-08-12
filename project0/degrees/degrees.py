@@ -1,7 +1,7 @@
 import csv
 import sys
 
-from util import Node, StackFrontier, QueueFrontier
+from project0.degrees.util import Node, QueueFrontier
 
 # Maps names to a set of corresponding person_ids
 names = {}
@@ -18,7 +18,7 @@ def load_data(directory):
     Load data from CSV files into memory.
     """
     # Load people
-    with open(f"{directory}/people.csv", encoding="utf-8") as f:
+    with open(f"degrees/{directory}/people.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             people[row["id"]] = {
@@ -32,7 +32,7 @@ def load_data(directory):
                 names[row["name"].lower()].add(row["id"])
 
     # Load movies
-    with open(f"{directory}/movies.csv", encoding="utf-8") as f:
+    with open(f"degrees/{directory}/movies.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             movies[row["id"]] = {
@@ -42,7 +42,7 @@ def load_data(directory):
             }
 
     # Load stars
-    with open(f"{directory}/stars.csv", encoding="utf-8") as f:
+    with open(f"degrees/{directory}/stars.csv", encoding="utf-8") as f:
         reader = csv.DictReader(f)
         for row in reader:
             try:
@@ -55,7 +55,7 @@ def load_data(directory):
 def main():
     if len(sys.argv) > 2:
         sys.exit("Usage: python degrees.py [directory]")
-    directory = sys.argv[1] if len(sys.argv) == 2 else "large"
+    directory = sys.argv[1] if len(sys.argv) == 2 else "small"
 
     # Load data from files into memory
     print("Loading data...")
@@ -92,8 +92,31 @@ def shortest_path(source, target):
     If no possible path, returns None.
     """
 
-    # TODO
-    raise NotImplementedError
+    # 初始化
+    startNode = Node(state = source, parent = None, action = None)
+    frontier = QueueFrontier()
+    explored = set()
+    route = list()
+
+    frontier.add(startNode)
+    while not frontier.empty():
+        node = frontier.remove()
+
+        if node.state == target:
+            while node.parent is not None:
+                route.append((node.action, node.state))
+                node = node.parent
+            route.reverse()
+            return route
+
+        explored.add(node.state)
+
+        for movie_id, person_id in neighbors_for_person(node.state):
+            if person_id not in explored and not frontier.contains_state(person_id):
+                child = Node(state = person_id, parent = node, action = movie_id)
+                frontier.add(child)
+
+    return None
 
 
 def person_id_for_name(name):
